@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "ہنر بازار",
+  "short_name": "ہنر بازار",
+  "description": "پشتون، بلوچ، سندھی اور سرائیکی دستکاری اور روایتی اشیاء کا بازار",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ur",
+  "theme_color": "#0f5132",
+  "background_color": "#f6f4ee",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
