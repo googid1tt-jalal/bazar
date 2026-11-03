@@ -1,7 +1,7 @@
 import React from 'react';
 import { CATEGORIES, Language, AppUser } from '../types/market';
 import { PWAInstallButton } from './PWAInstallButton';
-import { Sun, Moon, Bell, ShieldCheck, User, Search, X } from 'lucide-react';
+import { Sun, Moon, Bell, ShieldCheck, User, Search, X, Menu } from 'lucide-react';
 import { t } from '../locales/translations';
 
 interface HeaderProps {
@@ -19,6 +19,8 @@ interface HeaderProps {
   onLanguageChange: (lang: Language) => void;
   currentUser: AppUser | null;
   onOpenAuth: () => void;
+  isSideNavigationOpen: boolean;
+  onOpenSideNavigation: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,18 +37,30 @@ export const Header: React.FC<HeaderProps> = ({
   currentLanguage,
   onLanguageChange,
   currentUser,
-  onOpenAuth
+  onOpenAuth,
+  isSideNavigationOpen,
+  onOpenSideNavigation
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#0f5132] text-white shadow-md border-b border-emerald-900/60 transition-all">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-2.5">
         {/* Single Row: [Logo] --- [Resized Compact Search Bar] --- [Actions & Nav Menu] */}
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="relative flex items-center justify-between gap-2 sm:gap-4 pl-9">
+          <button
+            type="button"
+            onClick={onOpenSideNavigation}
+            aria-label={t('drawerNavigation', currentLanguage)}
+            aria-expanded={isSideNavigationOpen}
+            aria-controls="side-navigation"
+            className="absolute left-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-white transition hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#f4c542]"
+          >
+            <Menu className="h-6 w-6" aria-hidden="true" />
+          </button>
           
           {/* 1. Hunar Bazaar Logo */}
           <div className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#f4c542] flex items-center justify-center p-1 shadow-sm shrink-0">
-              <img src="/icon.svg" alt="Hunar Bazaar" className="w-full h-full object-contain" />
+              <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="Hunar Bazaar" className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="flex items-center gap-1">

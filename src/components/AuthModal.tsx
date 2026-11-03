@@ -22,8 +22,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onLoginSuccess,
   onLogout
 }) => {
-  if (!isOpen) return null;
-
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [loginMethod, setLoginMethod] = useState<'phone' | 'facebook' | 'email'>('phone');
 
@@ -47,6 +45,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const [showPassword, setShowPassword] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  if (!isOpen) return null;
 
   // Quick Facebook Login simulation
   const handleFacebookLogin = () => {

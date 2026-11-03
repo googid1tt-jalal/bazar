@@ -13,7 +13,8 @@ import {
   DEFAULT_COURIERS,
   Language,
   OrderShippingStatus,
-  BidItem
+  BidItem,
+  AppUser
 } from './types/market';
 import {
   INITIAL_PRODUCTS,
@@ -23,6 +24,8 @@ import {
   INITIAL_BIDS
 } from './utils/helpers';
 import { Header } from './components/Header';
+import { SideNavigation } from './components/SideNavigation';
+import { AuthModal } from './components/AuthModal';
 import { BottomNav, TabKey } from './components/BottomNav';
 import { OrderModal } from './components/OrderModal';
 import { BidModal } from './components/BidModal';
@@ -46,10 +49,35 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'notifications',
   BIDS: 'bids',
   THEME: 'theme',
-  LANG: 'lang'
+  LANG: 'lang',
+  USER: 'user'
 };
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.USER);
+      return saved ? JSON.parse(saved) as AppUser : null;
+    } catch (e) {
+      console.warn('Failed to parse user from storage:', e);
+      return null;
+    }
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isSideNavigationOpen, setIsSideNavigationOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (currentUser) {
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.USER);
+      }
+    } catch (e) {
+      console.warn('Failed to save user to storage:', e);
+    }
+  }, [currentUser]);
+
   // 1. Language State
   const [language, setLanguage] = useState<Language>(() => {
     return (localStorage.getItem(STORAGE_KEYS.LANG) as Language) || 'ur';
@@ -453,6 +481,36 @@ export default function App() {
         onOpenAdmin={() => setIsAdminOpen(true)}
         currentLanguage={language}
         onLanguageChange={handleLanguageChange}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        isSideNavigationOpen={isSideNavigationOpen}
+        onOpenSideNavigation={() => setIsSideNavigationOpen(true)}
+      />
+
+      <SideNavigation
+        isOpen={isSideNavigationOpen}
+        currentLanguage={language}
+        currentUserName={currentUser?.name}
+        selectedCategory={selectedCategory}
+        onClose={() => setIsSideNavigationOpen(false)}
+        onSelectCategory={setSelectedCategory}
+        onSelectTab={setCurrentTab}
+        onOpenAccount={() => setIsAuthOpen(true)}
+        onSignOut={() => setCurrentUser(null)}
+        onLanguageChange={handleLanguageChange}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentLanguage={language}
+        onLanguageChange={handleLanguageChange}
+        currentUser={currentUser}
+        onLoginSuccess={setCurrentUser}
+        onLogout={() => {
+          setCurrentUser(null);
+          setIsAuthOpen(false);
+        }}
       />
 
       {/* Main Content Area */}
