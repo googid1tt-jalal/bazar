@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --color-main-green: #0f5132;
+    --color-gold: #f4c542;
+    --color-warm-bg: #f6f4ee;
+    --color-card-bg: #ffffff;
+    --font-urdu: 'Noto Nastaliq Urdu', Tahoma, 'Segoe UI', Arial, sans-serif;
+  }
+
+  html {
+    font-family: var(--font-urdu);
+    direction: rtl;
+  }
+
+  body {
+    background-color: var(--color-warm-bg);
+    color: #1c2420;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 2.1;
+  }
+
+  html.dark body {
+    background-color: #121915;
+    color: #eef3f0;
+  }
+
+  input, textarea, select, button {
+    font-family: inherit;
+  }
+}
+
+/* Nastaliq text utilities with generous line-height to protect diacritics */
+.font-nastaliq {
+  font-family: 'Noto Nastaliq Urdu', Tahoma, sans-serif;
+  line-height: 2.2;
+}
+
+.nastaliq-compact {
+  font-family: 'Noto Nastaliq Urdu', Tahoma, sans-serif;
+  line-height: 1.85;
+}
+
+/* Hide scrollbar for category tabs while maintaining scrollability */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

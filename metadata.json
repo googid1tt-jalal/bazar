@@ -1,0 +1,6 @@
+{
+  "name": "Hunar Bazaar - Pashtun & Urdu Marketplace",
+  "description": "Mobile-first freelance gigs and goods marketplace for the Pakistani Urdu and Pashtun community with JazzCash & Easypaisa escrow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
