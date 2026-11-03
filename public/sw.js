@@ -1,12 +1,10 @@
 // Service Worker for Hunar Bazaar PWA
-const CACHE_NAME = 'hunarbazaar-cache-v1';
+const CACHE_NAME = 'hunarbazaar-cache-v3';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/src/main.tsx',
-  '/src/index.css'
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,14 +30,33 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  
-  // Stale-while-revalidate for local resources, Network first with fallback
+  if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
+  const indexUrl = new URL('./index.html', self.location.href).href;
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(indexUrl, copy));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cachedPage = await caches.match(indexUrl);
+          if (cachedPage) return cachedPage;
+          return Response.error();
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
+          if (networkResponse && networkResponse.ok) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
