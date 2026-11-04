@@ -1,9 +1,9 @@
-import { Language } from '../types';
+import { Language } from '../types/market';
 
 export const translations = {
   ur: {
     // Branding & Header
-    appName: 'ہنر بازار',
+    appName: 'ہنر بازار مارکیٹ پلیس',
     appTagline: 'پاکستان کا قابلِ اعتماد فری لانس و سامان کا بازار',
     searchPlaceholder: 'گگز، ہنر یا سامان تلاش کریں (مثلاً ویڈیو ایڈیٹنگ، چپل)...',
     toggleLanguage: 'زبان تبدیل کریں',
@@ -208,6 +208,8 @@ export const translations = {
     tabLogin: 'لاگ ان',
     tabRegister: 'نیا اکاؤنٹ',
     loginViaPhone: 'موبائل نمبر سے لاگ ان',
+    loginViaGoogle: 'گوگل سے لاگ ان (Google)',
+    loginViaWhatsapp: 'واٹس ایپ سے لاگ ان (WhatsApp)',
     loginViaFacebook: 'فیس بک سے لاگ ان',
     loginViaEmail: 'ای میل سے لاگ ان',
     phonePlaceholder: '0300 1234567',
@@ -241,6 +243,10 @@ export const translations = {
     emptyMarketTitle: 'ابھی کوئی چیز نہیں',
     emptyMarketDesc: 'اس زمرے یا تلاش میں کوئی دستکاری دستیاب نہیں ہے۔ آپ اپنی روایتی چیزیں یہاں شائع کر سکتے ہیں!',
     postYourCraft: '➕ اپنی چیز بیچیں',
+    buyItemsCardTitle: '🛍️ چیزیں خریدیں',
+    buyItemsCardDesc: 'پاکستان کی بہترین روایتی دستکاری، کپڑے، پشاوری چپل اور مقامی سامان دریافت کریں',
+    openShopCardTitle: '🏪 اپنی دکان کھولیں',
+    openShopCardDesc: 'اپنا ہنر یا روایتی سامان مفت میں شائع کریں اور منٹوں میں اپنے گاہک پائیں',
   },
 
   ps: {
@@ -450,6 +456,8 @@ export const translations = {
     tabLogin: 'ننوتل (لاګ ان)',
     tabRegister: 'نوې حساب',
     loginViaPhone: 'په موبایل شمېره ننوتل',
+    loginViaGoogle: 'ګوګل سره ننوتل (Google)',
+    loginViaWhatsapp: 'واټساپ سره ننوتل (WhatsApp)',
     loginViaFacebook: 'فیسبوک سره ننوتل',
     loginViaEmail: 'بریښنالیک سره ننوتل',
     phonePlaceholder: '0300 1234567',
@@ -483,11 +491,15 @@ export const translations = {
     emptyMarketTitle: 'لا تر اوسه کوم توکی نشته',
     emptyMarketDesc: 'په دې کټګورۍ کې لاسي صنایع نشته. تاسو کولی شئ خپل کلتوري توکي دلته خپاره کړئ!',
     postYourCraft: '➕ خپل شی وپلورئ',
+    buyItemsCardTitle: '🛍️ توکي وپیرئ (چیزیں خریدیں)',
+    buyItemsCardDesc: 'د پاکستان غوره کلتوري لاسي صنایع، پېښورۍ څپلۍ او افغاني/پښتني جامې لټول',
+    openShopCardTitle: '🏪 خپله هټۍ پرانیزئ (دکان کھولیں)',
+    openShopCardDesc: 'خپل هنر یا کلتوري سامان په وړیا توګه خپور کړئ او د غوښتونکو لخوا بولي او فرمایش ترلاسه کړئ',
   },
 
   en: {
     // Branding & Header
-    appName: 'Hunar Bazaar',
+    appName: 'Huner Bazaar Marketplace',
     appTagline: 'Pakistan’s Trusted Pashtun & Urdu Gigs & Goods Marketplace',
     searchPlaceholder: 'Search gigs, skills, or items (e.g. video editing, Peshawari chappal)...',
     toggleLanguage: 'Language',
@@ -692,6 +704,8 @@ export const translations = {
     tabLogin: 'Sign In',
     tabRegister: 'Create Account',
     loginViaPhone: 'Sign in with Mobile',
+    loginViaGoogle: 'Sign in with Google',
+    loginViaWhatsapp: 'Sign in with WhatsApp',
     loginViaFacebook: 'Sign in with Facebook',
     loginViaEmail: 'Sign in with Email',
     phonePlaceholder: '0300 1234567',
@@ -725,12 +739,45 @@ export const translations = {
     emptyMarketTitle: 'No crafts found yet',
     emptyMarketDesc: 'No artisan products match this category or search. You can publish your cultural items here!',
     postYourCraft: '➕ Post Your Craft',
+    buyItemsCardTitle: '🛍️ Buy Items',
+    buyItemsCardDesc: 'Explore authentic Pakistani handicrafts, Peshawari chappal, embroidery & local products',
+    openShopCardTitle: '🏪 Open Your Shop',
+    openShopCardDesc: 'List your crafts or goods for free and connect with thousands of buyers across Pakistan',
   },
 };
 
+(translations as any).ar = translations.en;
+(translations as any).zh = translations.en;
+(translations as any).es = translations.en;
+(translations as any).fr = translations.en;
+(translations as any).ru = translations.en;
+(translations as any).pt = translations.en;
+(translations as any).de = translations.en;
+(translations as any).ja = translations.en;
+(translations as any).tr = translations.en;
+(translations as any).hi = translations.en;
+(translations as any).bn = translations.en;
+(translations as any).id = translations.en;
+(translations as any).fa = translations.ur;
+(translations as any).sd = translations.ur;
+(translations as any).bal = translations.ur;
+(translations as any).pa = translations.ur;
+(translations as any).skr = translations.ur;
+(translations as any).ks = translations.ur;
+(translations as any).it = translations.en;
+(translations as any).ko = translations.en;
+(translations as any).vi = translations.en;
+(translations as any).th = translations.en;
+(translations as any).sw = translations.en;
+(translations as any).fil = translations.en;
+(translations as any).ms = translations.en;
+(translations as any).ta = translations.en;
+(translations as any).te = translations.en;
+
 export type TranslationKey = keyof typeof translations.ur;
 
-export function t(key: TranslationKey, lang: Language = 'ur'): string {
-  const langDict = translations[lang] || translations.ur;
-  return (langDict as any)[key] || (translations.ur as any)[key] || key;
+export function t(key: TranslationKey, lang: string = 'ur'): string {
+  const langDict = (translations as any)[lang] || translations.ur;
+  return langDict[key] || translations.ur[key] || key;
 }
+

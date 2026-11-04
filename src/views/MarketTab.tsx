@@ -1,13 +1,18 @@
 import React from 'react';
-import { ProductItem } from '../types/market';
+import { ProductItem, CATEGORIES, Language } from '../types/market';
 import { ProductCard } from '../components/ProductCard';
+import { t } from '../locales/translations';
 
 interface MarketTabProps {
   products: ProductItem[];
   searchQuery: string;
   selectedCategory: string;
+  onCategoryChange?: (catId: string) => void;
+  onResetSearch?: () => void;
+  currentLanguage?: Language;
   onOrder: (product: ProductItem) => void;
   onBid: (product: ProductItem) => void;
+  onOpenQR?: (product: ProductItem) => void;
   onGoToSell: () => void;
 }
 
@@ -15,74 +20,78 @@ export const MarketTab: React.FC<MarketTabProps> = ({
   products,
   searchQuery,
   selectedCategory,
+  onCategoryChange,
+  currentLanguage = 'ur',
   onOrder,
   onBid,
-  onGoToSell
+  onOpenQR
 }) => {
-  // Live filtering by search query (title, description, city) and category
   const filteredProducts = products.filter((item) => {
-    // Category check
-    if (selectedCategory !== 'all' && item.category !== selectedCategory) {
-      return false;
-    }
-
-    // Search query check (title, description, city)
+    if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const matchTitle = item.title.toLowerCase().includes(q);
-      const matchDesc = item.description.toLowerCase().includes(q);
-      const matchCity = item.city.toLowerCase().includes(q);
-      if (!matchTitle && !matchDesc && !matchCity) {
-        return false;
-      }
+      return item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q) || item.city.toLowerCase().includes(q);
     }
-
     return true;
   });
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Feed Result Status */}
-      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-        <span>
-          {filteredProducts.length} دستکاری اشیاء دستیاب ہیں
-        </span>
-        {searchQuery && (
-          <span className="text-[#0f5132] dark:text-[#f4c542] font-bold">
-            تلاش برائے: "{searchQuery}"
-          </span>
-        )}
+    <div className="space-y-8 pb-24">
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold">Welcome to Hunar Bazaar</h2>
+        <p className="opacity-80">Explore authentic crafts and imported goods.</p>
       </div>
 
-      {/* Grid of Product Cards */}
-      {filteredProducts.length === 0 ? (
-        <div className="py-20 text-center bg-white dark:bg-[#1a241e] rounded-3xl border border-slate-200 dark:border-emerald-950 p-8 space-y-4">
-          <div className="text-5xl select-none">🧶</div>
-          <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200 font-nastaliq">
-            ابھی کوئی چیز نہیں
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-            اس زمرے یا تلاش میں کوئی دستکاری دستیاب نہیں ہے۔ آپ اپنی روایتی چیزیں یہاں شائع کر سکتے ہیں!
-          </p>
-          <button
-            onClick={onGoToSell}
-            className="px-5 py-2.5 rounded-xl bg-[#f4c542] hover:bg-[#e5b634] text-[#0f5132] font-extrabold text-xs sm:text-sm shadow-sm transition font-nastaliq cursor-pointer"
-          >
-            ➕ اپنی چیز بیچیں
-          </button>
+      {/* Top Categories */}
+      <section>
+        <h2 className="text-lg font-bold mb-4">Top Categories</h2>
+        <div className="grid grid-cols-4 gap-4">
+          {CATEGORIES.slice(1, 5).map(cat => (
+            <div key={cat.id} className="cursor-pointer" onClick={() => onCategoryChange && onCategoryChange(cat.id)}>
+              <div className="bg-slate-100 dark:bg-slate-700 rounded-full h-16 w-16 flex items-center justify-center text-2xl mb-2 mx-auto">{cat.emoji}</div>
+              <p className="text-xs text-center font-medium">{cat.nameEnglish}</p>
+            </div>
+          ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredProducts.map((product) => (
+      </section>
+
+      {/* Trending Products */}
+      <section>
+        <h2 className="text-lg font-bold mb-4">Trending</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {filteredProducts.slice(0, 4).map(product => (
             <ProductCard
               key={product.id}
               product={product}
+              currentLanguage={currentLanguage}
               onOrder={onOrder}
               onBid={onBid}
             />
           ))}
         </div>
-      )}
+      </section>
+      
+      {/* New Arrivals */}
+      <section>
+        <h2 className="text-lg font-bold mb-4">New Arrivals</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {filteredProducts.slice(4, 8).map(product => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              currentLanguage={currentLanguage}
+              onOrder={onOrder}
+              onBid={onBid}
+            />
+          ))}
+        </div>
+      </section>
+      
+      {/* Footer Legal Note */}
+      <footer className="text-center text-xs text-slate-500 mt-10 p-4 border-t">
+        یہ ایپ دراز، ایمیزون، مرکز اور علی بابا سے وابستہ نہیں ہے۔ خریداری متعلقہ ویب سائٹ پر ہوگی اور ہمیں کمیشن مل سکتا ہے۔
+      </footer>
     </div>
   );
 };

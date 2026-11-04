@@ -141,113 +141,33 @@ export async function shareProductListing(product: ProductItem): Promise<'shared
   return 'opened_wa';
 }
 
-export function getProductTitle(product: ProductItem, lang: 'ur' | 'ps' | 'en'): string {
+export function getProductTitle(product: ProductItem, lang: string = 'ur'): string {
   if (lang === 'ps' && product.titlePs) return product.titlePs;
   if (lang === 'en' && product.titleEn) return product.titleEn;
   return product.title;
 }
 
-export function getProductDescription(product: ProductItem, lang: 'ur' | 'ps' | 'en'): string {
+export function getProductDescription(product: ProductItem, lang: string = 'ur'): string {
   if (lang === 'ps' && product.descriptionPs) return product.descriptionPs;
   if (lang === 'en' && product.descriptionEn) return product.descriptionEn;
   return product.description;
 }
 
-export function getProductCity(product: ProductItem, lang: 'ur' | 'ps' | 'en'): string {
+export function getProductCity(product: ProductItem, lang: string = 'ur'): string {
   if (lang === 'ps' && product.cityPs) return product.cityPs;
   if (lang === 'en' && product.cityEn) return product.cityEn;
   return product.city;
 }
 
 export const INITIAL_PRODUCTS: ProductItem[] = [
-  {
-    id: 'item_1',
-    title: 'پشاوری چپل (اصلی چمڑا و ٹائر سول)',
-    titlePs: 'پېښورۍ څپلۍ (اصلي څرمن او ټایر تلی)',
-    titleEn: 'Authentic Peshawari Chappal (Pure Leather & Tyre Sole)',
-    category: 'chappal',
-    price: 3000,
-    shippingFee: 200,
-    city: 'پشاور',
-    cityPs: 'پېښور',
-    cityEn: 'Peshawar',
-    whatsapp: '03139876543',
-    description: 'نمک منڈی پشاور کی خالص چمڑے کی روایتی چپل، پائیدار سلائی اور آرام دہ ٹائر کا سول۔ تمام سائز دستیاب ہیں۔',
-    descriptionPs: 'د پېښور د نمک منډۍ اصلي او سوچه څرمن پېښورۍ څپلۍ، کلکه ګنډنه او د ټایر ښکلی پائیدار تلی.',
-    descriptionEn: 'Traditional pure cowhide leather Peshawari footwear hand-stitched by Namak Mandi artisans with durable tyre sole. All sizes available.',
-    photoUrl: '/src/assets/images/peshawari_chappal_1793620850599.jpg',
-    createdAt: '2026-11-01',
-    isMine: false,
-    allowBidding: true,
-    currentBid: 2850,
-    bidsCount: 3
-  },
-  {
-    id: 'item_2',
-    title: 'پشتون کڑھائی والی روایتی ٹوپی',
-    titlePs: 'د پښتنو ګنډلې کلتوري خولۍ',
-    titleEn: 'Traditional Hand-Embroidered Pashtun Tribal Cap',
-    category: 'embroidery_clothes',
-    price: 1200,
-    shippingFee: 150,
-    city: 'مردان',
-    cityPs: 'مردان',
-    cityEn: 'Mardan',
-    whatsapp: '03215551234',
-    description: 'مردان کی مشہور ہاتھ سے کڑھی ہوئی پختون ثقافتی ٹوپی، دلکش رنگین دھاگوں اور شیشے کے نفیس کام کے ساتھ۔',
-    descriptionPs: 'د مردان مشهوره په لاس ګنډل شوې پښتني کلتوري خولۍ په رنګینو تارونو او ښکلو هیندارو سنباله.',
-    descriptionEn: 'Famous hand-embroidered cultural Pakhtun cap from Mardan with intricate silk thread patterns and fine mirror work.',
-    photoUrl: '', // Will render 🧶 placeholder
-    createdAt: '2026-11-01',
-    isMine: false,
-    allowBidding: true,
-    currentBid: 1100,
-    bidsCount: 2
-  },
-  {
-    id: 'item_3',
-    title: 'سواتی کڑھائی والی گرم اون کی شال',
-    titlePs: 'د سوات د پسونو د وړیو ګنډلې شړۍ / پټو',
-    titleEn: 'Pure Swati Wool Embroidered Warm Shawl / Pattoo',
-    category: 'embroidery_clothes',
-    price: 4500,
-    shippingFee: 0, // Free delivery
-    city: 'سوات',
-    cityPs: 'سوات',
-    cityEn: 'Swat Valley',
-    whatsapp: '03457778899',
-    description: 'سوات کی خالص بھیڑ کی اون سے تیار کردہ ہاتھ کی کڑھائی والی پرتعیش شال۔ مفت ترسیل (Free Delivery)۔',
-    descriptionPs: 'د سوات د درې خالص پسه له وړیو جوړه شوې ګرمه شړۍ چې د ژمي لپاره ډیره توده ده. وړیا رسول.',
-    descriptionEn: 'Luxury artisan warm wool shawl woven and hand-embroidered by craftsmen in Swat Valley. 100% genuine sheep wool with free shipping.',
-    photoUrl: '/src/assets/images/swat_embroidered_shawl_1793620851668.jpg',
-    createdAt: '2026-10-30',
-    isMine: false,
-    allowBidding: true,
-    currentBid: 4200,
-    bidsCount: 4
-  },
-  {
-    id: 'item_4',
-    title: 'کرک کے پہاڑوں کا خالص بیری (سدر) کا شہد',
-    titlePs: 'د کرک غرونو خالص بیری (سدر) عسل',
-    titleEn: 'Pure Mountain Sidr (Berry) Organic Honey from Karak',
-    category: 'dry_fruits_food',
-    price: 2800,
-    shippingFee: 250,
-    city: 'کرک',
-    cityPs: 'کرک',
-    cityEn: 'Karak',
-    whatsapp: '03334442211',
-    description: 'خیبر پختونخوا کے پہاڑوں سے حاصل کردہ 100 فیصد خالص غیر پروسیس شدہ قدرتی بیری کا شہد۔ 1 کلو جار۔',
-    descriptionPs: 'د خیبر پښتونخوا د کرک له غرنیزو سیمو راټول شوی ۱۰۰ سلنه سوچه او طبیعي بېري عسل. ۱ کیلو.',
-    descriptionEn: '100% raw, unpasteurized natural Sidr berry honey collected by local beekeepers in Karak, KP. 1kg glass jar.',
-    photoUrl: '/src/assets/images/sidr_honey_jar_1793620854016.jpg',
-    createdAt: '2026-10-29',
-    isMine: false,
-    allowBidding: true,
-    currentBid: 2600,
-    bidsCount: 1
-  }
+  { id: 'item_1', title: 'پشاوری چپل (اصلی چمڑا و ٹائر سول)', category: 'chappal', price: 3000, shippingFee: 200, city: 'پشاور', whatsapp: '03139876543', description: 'نمک منڈی پشاور کی خالص چمڑے کی روایتی چپل', photoUrl: '', createdAt: '2026-11-01', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_2', title: 'پشتون کڑھائی والی روایتی ٹوپی', category: 'embroidery_clothes', price: 1200, shippingFee: 150, city: 'مردان', whatsapp: '03215551234', description: 'مردان کی مشہور ہاتھ سے کڑھی ہوئی پختون ثقافتی ٹوپی', photoUrl: '', createdAt: '2026-11-01', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_3', title: 'سواتی کڑھائی والی گرم اون کی شال', category: 'embroidery_clothes', price: 4500, shippingFee: 0, city: 'سوات', whatsapp: '03457778899', description: 'سوات کی خالص بھیڑ کی اون سے تیار کردہ ہاتھ کی کڑھائی والی پرتعیش شال', photoUrl: '', createdAt: '2026-10-30', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_4', title: 'کرک کے پہاڑوں کا خالص بیری (سدر) کا شہد', category: 'dry_fruits_food', price: 2800, shippingFee: 250, city: 'کرک', whatsapp: '03334442211', description: 'خیبر پختونخوا کے پہاڑوں سے حاصل کردہ 100 فیصد خالص شہد', photoUrl: '', createdAt: '2026-10-29', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_5', title: 'پروفیشنل الیکٹریشن اوزار کٹ', category: 'electrician_tools', price: 3500, shippingFee: 200, city: 'پشاور', whatsapp: '03001234567', description: 'ہیوی ڈیوٹی الیکٹریشن ٹول سیٹ', photoUrl: '', createdAt: '2026-10-28', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_6', title: 'ڈجیٹل بلڈ پریشر مانیٹر مشین', category: 'medicines_healthcare', price: 4200, shippingFee: 0, city: 'اسلام آباد', whatsapp: '03001234567', description: 'گھر کے لیے آسان اور بالکل درست ڈجیٹل بلڈ پریشر مانیٹر', photoUrl: '', createdAt: '2026-10-27', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_7', title: 'بچوں کا تعلیمی بلڈنگ بلاکس روبوٹ کھلونا سیٹ', category: 'toys_games', price: 2400, shippingFee: 180, city: 'لاہور', whatsapp: '03001234567', description: 'بچوں کی ذہنی نشوونما کے لیے تعلیمی بلاکس', photoUrl: '', createdAt: '2026-10-26', isMine: false, source: 'own', productUrl: '' },
+  { id: 'item_8', title: 'Amazon Essentials Men’s Polo Shirt', category: 'other', price: 5000, shippingFee: 300, city: 'Amazon', whatsapp: '', description: 'Authentic Amazon polo shirt.', photoUrl: '', createdAt: '2026-11-02', isMine: false, source: 'amazon', productUrl: 'https://amazon.com/product/1' },
 ];
 
 export const INITIAL_BIDS: BidItem[] = [

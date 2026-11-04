@@ -1,4 +1,50 @@
-export type Language = 'ur' | 'ps' | 'en';
+export type Language =
+  | 'ur' | 'ps' | 'en' | 'ar' | 'zh' | 'es' | 'fr' | 'ru' | 'pt' | 'de'
+  | 'ja' | 'tr' | 'hi' | 'bn' | 'id' | 'fa' | 'sd' | 'bal' | 'pa' | 'skr'
+  | 'ks' | 'it' | 'ko' | 'vi' | 'th' | 'sw' | 'fil' | 'ms' | 'ta' | 'te';
+
+export interface LanguageInfo {
+  code: Language;
+  nativeName: string;
+  englishName: string;
+  flag: string;
+  dir: 'rtl' | 'ltr';
+}
+
+export const SUPPORTED_LANGUAGES: LanguageInfo[] = [
+  { code: 'ur', nativeName: 'اردو', englishName: 'Urdu', flag: '🇵🇰', dir: 'rtl' },
+  { code: 'ps', nativeName: 'پښتو', englishName: 'Pashto', flag: '🇦🇫', dir: 'rtl' },
+  { code: 'en', nativeName: 'English', englishName: 'English', flag: '🇺🇸', dir: 'ltr' },
+  { code: 'ar', nativeName: 'العربية', englishName: 'Arabic', flag: '🇸🇦', dir: 'rtl' },
+  { code: 'zh', nativeName: '中文', englishName: 'Chinese (Mandarin)', flag: '🇨🇳', dir: 'ltr' },
+  { code: 'es', nativeName: 'Español', englishName: 'Spanish', flag: '🇪🇸', dir: 'ltr' },
+  { code: 'fr', nativeName: 'Français', englishName: 'French', flag: '🇫🇷', dir: 'ltr' },
+  { code: 'ru', nativeName: 'Русский', englishName: 'Russian', flag: '🇷🇺', dir: 'ltr' },
+  { code: 'pt', nativeName: 'Português', englishName: 'Portuguese', flag: '🇧🇷', dir: 'ltr' },
+  { code: 'de', nativeName: 'Deutsch', englishName: 'German', flag: '🇩🇪', dir: 'ltr' },
+  { code: 'ja', nativeName: '日本語', englishName: 'Japanese', flag: '🇯🇵', dir: 'ltr' },
+  { code: 'tr', nativeName: 'Türkçe', englishName: 'Turkish', flag: '🇹🇷', dir: 'ltr' },
+  { code: 'hi', nativeName: 'हिंदी', englishName: 'Hindi', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'bn', nativeName: 'বাংলা', englishName: 'Bengali', flag: '🇧🇩', dir: 'ltr' },
+  { code: 'id', nativeName: 'Bahasa Indonesia', englishName: 'Indonesian', flag: '🇮🇩', dir: 'ltr' },
+  { code: 'fa', nativeName: 'فارسی', englishName: 'Persian', flag: '🇮🇷', dir: 'rtl' },
+  { code: 'sd', nativeName: 'سنڌی', englishName: 'Sindhi', flag: '🇵🇰', dir: 'rtl' },
+  { code: 'bal', nativeName: 'بلوچی', englishName: 'Balochi', flag: '🇵🇰', dir: 'rtl' },
+  { code: 'pa', nativeName: 'پੰਜਾਬੀ', englishName: 'Punjabi', flag: '🇵🇰', dir: 'rtl' },
+  { code: 'skr', nativeName: 'سرائیکی', englishName: 'Saraiki', flag: '🇵🇰', dir: 'rtl' },
+  { code: 'ks', nativeName: 'کاشور', englishName: 'Kashmiri', flag: '🇮🇳', dir: 'rtl' },
+  { code: 'it', nativeName: 'Italiano', englishName: 'Italian', flag: '🇮🇹', dir: 'ltr' },
+  { code: 'ko', nativeName: '한국어', englishName: 'Korean', flag: '🇰🇷', dir: 'ltr' },
+  { code: 'vi', nativeName: 'Tiếng Việt', englishName: 'Vietnamese', flag: '🇻🇳', dir: 'ltr' },
+  { code: 'th', nativeName: 'ไทย', englishName: 'Thai', flag: '🇹🇭', dir: 'ltr' },
+  { code: 'sw', nativeName: 'Kiswahili', englishName: 'Swahili', flag: '🇹🇿', dir: 'ltr' },
+  { code: 'fil', nativeName: 'Tagalog', englishName: 'Filipino', flag: '🇵🇭', dir: 'ltr' },
+  { code: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay', flag: '🇲🇾', dir: 'ltr' },
+  { code: 'ta', nativeName: 'தமிழ்', englishName: 'Tamil', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'te', nativeName: 'తెలుగు', englishName: 'Telugu', flag: '🇮🇳', dir: 'ltr' },
+];
+
+
 
 export interface AppUser {
   id: string;
@@ -39,14 +85,17 @@ export interface CategoryOption {
 }
 
 export const CATEGORIES: CategoryOption[] = [
-  { id: 'all', name: 'سب اقسام', nameUrdu: 'سب اقسام', namePashto: 'ټولې کټګورۍ', nameEnglish: 'All Categories', icon: '🛍️', emoji: '🛍️' },
-  { id: 'embroidery_clothes', name: 'کڑھائی اور کپڑے', nameUrdu: 'کڑھائی اور کپڑے', namePashto: 'ګنډل او کالي', nameEnglish: 'Embroidery & Clothes', icon: '🪡', emoji: '🪡' },
-  { id: 'chappal', name: 'پشاوری چپل', nameUrdu: 'پشاوری چپل', namePashto: 'پېښورۍ څپلۍ', nameEnglish: 'Peshawari Chappal', icon: '👡', emoji: '👡' },
-  { id: 'woodwork', name: 'لکڑی کا کام', nameUrdu: 'لکڑی کا کام', namePashto: 'د لرګیو کار', nameEnglish: 'Woodwork', icon: '🪵', emoji: '🪵' },
-  { id: 'jewelry', name: 'زیورات', nameUrdu: 'زیورات', namePashto: 'ګاڼې او زیورات', nameEnglish: 'Traditional Jewelry', icon: '💍', emoji: '💍' },
-  { id: 'carpets_blankets', name: 'قالین و کمبل', nameUrdu: 'قالین و کمبل', namePashto: 'غالۍ او شړۍ', nameEnglish: 'Carpets & Blankets', icon: '🧶', emoji: '🧶' },
-  { id: 'dry_fruits_food', name: 'خشک میوہ و خوراک', nameUrdu: 'خشک میوہ و خوراک', namePashto: 'وچه میوه او خوراک', nameEnglish: 'Dry Fruits & Food', icon: '🥜', emoji: '🥜' },
-  { id: 'other', name: 'دیگر', nameUrdu: 'دیگر روایتی سامان', namePashto: 'نور کلتوري توکي', nameEnglish: 'Other Crafts', icon: '✨', emoji: '✨' },
+  { id: 'all', name: 'تمام کیٹیگریز', nameUrdu: 'تمام کیٹیگریز', namePashto: 'ټولې کټګورۍ', nameEnglish: 'All Categories', icon: '🛍️', emoji: '🛍️' },
+  { id: 'electrician_tools', name: 'الیکٹریشن سامان و اوزار', nameUrdu: 'الیکٹریشن سامان و اوزار', namePashto: 'د برېښنايي کار اوزار', nameEnglish: 'Electrician Tools & Accessories', icon: '⚡', emoji: '⚡' },
+  { id: 'medicines_healthcare', name: 'دوائیاں و صحت کا سامان', nameUrdu: 'دوائیاں و صحت کا سامان', namePashto: 'درمل او روغتیايي توکي', nameEnglish: 'Medicines & Healthcare', icon: '💊', emoji: '💊' },
+  { id: 'toys_games', name: 'بچوں کے کھلونے', nameUrdu: 'بچوں کے کھلونے و گیمز', namePashto: 'د ماشومانو لوبې او اسباب', nameEnglish: "Children's Toys & Games", icon: '🧸', emoji: '🧸' },
+  { id: 'embroidery_clothes', name: 'کپڑے اور کڑھائی', nameUrdu: 'کپڑے اور کڑھائی', namePashto: 'کالي او د جامو ګنډل', nameEnglish: 'Fashion & Clothes', icon: '🪡', emoji: '🪡' },
+  { id: 'chappal', name: 'پشاوری چپل و دستکاری', nameUrdu: 'پشاوری چپل و دستکاری', namePashto: 'پېښورۍ څپلۍ او لاسي صنایع', nameEnglish: 'Footwear & Handicrafts', icon: '👡', emoji: '👡' },
+  { id: 'home_essentials', name: 'گھریلو سامان', nameUrdu: 'گھریلو سامان و روزمرہ', namePashto: 'د کور اړین توکي', nameEnglish: 'Home Essentials & General', icon: '🏠', emoji: '🏠' },
+  { id: 'woodwork', name: 'لکڑی کا کام', nameUrdu: 'لکڑی کا کام و فرنیچر', namePashto: 'د لرګیو کار او فرنیچر', nameEnglish: 'Woodwork & Furniture', icon: '🪵', emoji: '🪵' },
+  { id: 'jewelry', name: 'زیورات و زمرد', nameUrdu: 'زیورات و نایاب پتھر', namePashto: 'ګاڼې او یاقوت', nameEnglish: 'Traditional Jewelry & Gems', icon: '💍', emoji: '💍' },
+  { id: 'dry_fruits_food', name: 'خشک میوہ و شہد', nameUrdu: 'خشک میوہ و خالص شہد', namePashto: 'وچه میوه او سوچه عسل', nameEnglish: 'Dry Fruits & Honey', icon: '🥜', emoji: '🥜' },
+  { id: 'other', name: 'دیگر سامان', nameUrdu: 'دیگر سامان و متفرق', namePashto: 'نور عمومی توکي', nameEnglish: 'Other General Items', icon: '✨', emoji: '✨' },
 ];
 
 export const PAKISTANI_CITIES = [
@@ -171,13 +220,15 @@ export interface ProductItem {
   description: string;
   descriptionPs?: string;
   descriptionEn?: string;
-  photoUrl: string; // Base64 or asset path
+  photoUrl: string;
   createdAt: string;
   isMine?: boolean;
-  shippingFee?: number; // Delivery charges in PKR (0 for free)
-  allowBidding?: boolean; // Whether users can place bids/offers
-  currentBid?: number; // Highest active bid amount
+  shippingFee?: number;
+  allowBidding?: boolean;
+  currentBid?: number;
   bidsCount?: number;
+  source: 'daraz' | 'amazon' | 'markaz' | 'alibaba' | 'own';
+  productUrl?: string;
 }
 
 export interface BidItem {

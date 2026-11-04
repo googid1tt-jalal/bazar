@@ -1,58 +1,79 @@
 import React from 'react';
+import { Home, Search, Plus, ShoppingBag, User } from 'lucide-react';
 
-export type TabKey = 'market' | 'sell' | 'myshop' | 'orders';
+export type TabKey = 'home' | 'search' | 'sell' | 'orders' | 'profile';
 
 interface BottomNavProps {
   currentTab: TabKey;
   onTabChange: (tab: TabKey) => void;
-  myItemsCount?: number;
   ordersCount?: number;
+  isHidden?: boolean;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   currentTab,
   onTabChange,
-  myItemsCount = 0,
-  ordersCount = 0
+  ordersCount = 0,
+  isHidden = false
 }) => {
-  const tabs: { key: TabKey; label: string; icon: string; count?: number }[] = [
-    { key: 'market', label: 'بازار', icon: '🛍️' },
-    { key: 'sell', label: 'بیچیں', icon: '➕' },
-    { key: 'myshop', label: 'میری دکان', icon: '📦', count: myItemsCount },
-    { key: 'orders', label: 'میرے آرڈر', icon: '🧾', count: ordersCount },
+  if (isHidden) return null;
+
+  const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+    { key: 'home', label: 'ہوم', icon: <Home size={24} /> },
+    { key: 'search', label: 'تلاش', icon: <Search size={24} /> },
+    { key: 'sell', label: 'بیچیں', icon: <Plus size={28} strokeWidth={3} /> },
+    { key: 'orders', label: 'آرڈرز', icon: <ShoppingBag size={24} /> },
+    { key: 'profile', label: 'پروفائل', icon: <User size={24} /> },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#15201a]/95 backdrop-blur-md border-t border-slate-200 dark:border-emerald-950/80 shadow-lg safe-bottom">
-      <div className="grid grid-cols-4 items-center h-16 max-w-lg mx-auto px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#121915] border-t border-slate-200 dark:border-emerald-950 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] safe-bottom h-[64px]">
+      <div className="max-w-xl mx-auto h-full grid grid-cols-5 items-center relative">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
+          const isCenter = tab.key === 'sell';
+
+          if (isCenter) {
+            return (
+              <div key={tab.key} className="flex flex-col items-center justify-center h-full relative">
+                <button
+                  onClick={() => onTabChange(tab.key)}
+                  className={`-translate-y-4 w-14 h-14 rounded-full bg-[#0f5132] text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform cursor-pointer border-4 border-white dark:border-[#121915]`}
+                  aria-label={tab.label}
+                >
+                  {tab.icon}
+                </button>
+                <span className="absolute bottom-1 text-[11px] font-bold font-nastaliq text-slate-500 dark:text-slate-400">
+                  {tab.label}
+                </span>
+              </div>
+            );
+          }
+
           return (
             <button
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
-              className={`min-h-[48px] min-w-[44px] relative flex flex-col items-center justify-center transition-all cursor-pointer ${
-                isActive
-                  ? 'text-[#0f5132] dark:text-[#f4c542] font-bold scale-105'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              className={`flex flex-col items-center justify-center h-full gap-1 transition-all active:scale-95 cursor-pointer relative ${
+                isActive ? 'text-[#0f5132] dark:text-[#f4c542]' : 'text-slate-400 dark:text-slate-500'
               }`}
             >
-              <div className="text-xl sm:text-2xl leading-none">{tab.icon}</div>
-              <span className="text-[11px] sm:text-xs tracking-tight mt-1 whitespace-nowrap font-nastaliq">
+              {isActive && (
+                <div className="absolute top-0 w-8 h-1 bg-[#0f5132] dark:bg-[#f4c542] rounded-b-full animate-fade-in" />
+              )}
+              
+              <div className="relative">
+                {tab.icon}
+                {tab.key === 'orders' && ordersCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white dark:border-[#121915]">
+                    {ordersCount}
+                  </span>
+                )}
+              </div>
+              
+              <span className="text-[11px] font-bold font-nastaliq whitespace-nowrap">
                 {tab.label}
               </span>
-
-              {/* Notification Badge if applicable */}
-              {tab.count !== undefined && tab.count > 0 && (
-                <span className="absolute top-1 left-3 sm:left-4 min-w-4 h-4 px-1 rounded-full bg-[#0f5132] dark:bg-[#f4c542] text-white dark:text-[#0f5132] text-[9px] font-bold flex items-center justify-center shadow-xs">
-                  {tab.count}
-                </span>
-              )}
-
-              {/* Active Indicator bar */}
-              {isActive && (
-                <span className="absolute bottom-1 w-6 h-1 rounded-full bg-[#f4c542]" />
-              )}
             </button>
           );
         })}

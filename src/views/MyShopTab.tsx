@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ProductItem, OrderItem, CourierService, BidItem } from '../types/market';
+import { ProductItem, OrderItem, CourierService, BidItem, Language } from '../types/market';
 import { ProductCard } from '../components/ProductCard';
 import { SellerStats } from '../components/SellerStats';
+import { ShopAnalytics } from '../components/ShopAnalytics';
 import { formatToPakistaniWhatsapp } from '../utils/helpers';
 import {
   Store,
@@ -19,7 +20,9 @@ import {
   X,
   MessageCircle,
   TrendingDown,
-  TrendingUp
+  TrendingUp,
+  PackagePlus,
+  BarChart3
 } from 'lucide-react';
 
 interface MyShopTabProps {
@@ -27,13 +30,16 @@ interface MyShopTabProps {
   orders: OrderItem[];
   couriers: CourierService[];
   bids: BidItem[];
+  currentLanguage?: Language;
   onDeleteProduct: (id: string) => void;
   onGoToSell: () => void;
+  onOpenAmazonImport?: () => void;
   onOpenShipmentModal: (order: OrderItem) => void;
   onOpenShippingLabel: (order: OrderItem) => void;
   onAcceptBid: (bidId: string) => void;
   onDeclineBid: (bidId: string) => void;
   onBid?: (product: ProductItem) => void;
+  onOpenQR?: (product: ProductItem) => void;
 }
 
 export const MyShopTab: React.FC<MyShopTabProps> = ({
@@ -41,15 +47,18 @@ export const MyShopTab: React.FC<MyShopTabProps> = ({
   orders,
   couriers,
   bids,
+  currentLanguage = 'ur',
   onDeleteProduct,
   onGoToSell,
+  onOpenAmazonImport,
   onOpenShipmentModal,
   onOpenShippingLabel,
   onAcceptBid,
   onDeclineBid,
-  onBid
+  onBid,
+  onOpenQR
 }) => {
-  const [subTab, setSubTab] = useState<'products' | 'bids' | 'shipping' | 'earnings'>('products');
+  const [subTab, setSubTab] = useState<'products' | 'analytics' | 'bids' | 'shipping' | 'earnings'>('products');
   const [productToDelete, setProductToDelete] = useState<ProductItem | null>(null);
 
   // Filter only items posted by me
@@ -105,38 +114,63 @@ export const MyShopTab: React.FC<MyShopTabProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onGoToSell}
-            className="px-3.5 py-2 rounded-xl bg-[#f4c542] hover:bg-[#e5b634] text-[#0f5132] font-extrabold text-xs shadow-xs transition cursor-pointer font-nastaliq flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>نیا آئٹم لگائیں</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {onOpenAmazonImport && (
+              <button
+                type="button"
+                onClick={onOpenAmazonImport}
+                className="px-3.5 py-2 rounded-xl bg-amber-400/90 hover:bg-amber-300 text-[#0f5132] font-black text-xs shadow-xs transition cursor-pointer font-nastaliq flex items-center gap-1.5 border border-amber-300"
+              >
+                <PackagePlus className="w-4 h-4 text-[#0f5132]" />
+                <span>ایمیزون امپورٹ</span>
+              </button>
+            )}
+
+            <button
+              onClick={onGoToSell}
+              className="px-3.5 py-2 rounded-xl bg-[#0f5132] hover:bg-[#12623d] text-white font-extrabold text-xs shadow-xs transition cursor-pointer font-nastaliq flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4 text-[#f4c542]" />
+              <span>نیا آئٹم لگائیں</span>
+            </button>
+          </div>
         </div>
 
-        {/* 4 Sub-Navigation Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-100 dark:bg-[#121915] rounded-2xl text-xs font-semibold">
+        {/* 5 Sub-Navigation Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 p-1 bg-slate-100 dark:bg-[#121915] rounded-2xl text-xs font-semibold">
           <button
             onClick={() => setSubTab('products')}
-            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1 font-nastaliq ${
               subTab === 'products'
                 ? 'bg-white dark:bg-[#1e2b24] text-[#0f5132] dark:text-[#f4c542] font-bold shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            <span>میری مصنوعات ({myProducts.length})</span>
+            <span>مصنوعات ({myProducts.length})</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('analytics')}
+            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1 font-nastaliq ${
+              subTab === 'analytics'
+                ? 'bg-[#0f5132] text-white dark:bg-[#f4c542] dark:text-[#0f5132] font-black shadow-xs'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>اینالیٹکس</span>
           </button>
 
           <button
             onClick={() => setSubTab('bids')}
-            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1 font-nastaliq ${
               subTab === 'bids'
                 ? 'bg-white dark:bg-[#1e2b24] text-[#0f5132] dark:text-[#f4c542] font-bold shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
             <Gavel className="w-3.5 h-3.5" />
-            <span>بولیاں و آفرز</span>
+            <span>بولیاں</span>
             {pendingBidsCount > 0 && (
               <span className="w-4 h-4 rounded-full bg-[#0f5132] text-white text-[10px] flex items-center justify-center font-bold">
                 {pendingBidsCount}
@@ -146,13 +180,13 @@ export const MyShopTab: React.FC<MyShopTabProps> = ({
 
           <button
             onClick={() => setSubTab('shipping')}
-            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1 font-nastaliq ${
               subTab === 'shipping'
                 ? 'bg-white dark:bg-[#1e2b24] text-[#0f5132] dark:text-[#f4c542] font-bold shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            <span>شپنگ و پارسلز</span>
+            <span>پارسلز</span>
             {readyToShipCount > 0 && (
               <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-bold">
                 {readyToShipCount}
@@ -162,17 +196,26 @@ export const MyShopTab: React.FC<MyShopTabProps> = ({
 
           <button
             onClick={() => setSubTab('earnings')}
-            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-2 text-center rounded-xl transition cursor-pointer flex items-center justify-center gap-1 font-nastaliq ${
               subTab === 'earnings'
                 ? 'bg-white dark:bg-[#1e2b24] text-[#0f5132] dark:text-[#f4c542] font-bold shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
             <DollarSign className="w-3.5 h-3.5" />
-            <span>آمدن و COD لیجر</span>
+            <span>آمدن</span>
           </button>
         </div>
       </div>
+
+      {/* Sub-Tab 2: Analytics Visualization Section (Recharts) */}
+      {subTab === 'analytics' && (
+        <ShopAnalytics
+          orders={orders}
+          products={products}
+          currentLanguage={currentLanguage}
+        />
+      )}
 
       {/* Sub-Tab 1: My Products */}
       {subTab === 'products' && (
@@ -199,8 +242,10 @@ export const MyShopTab: React.FC<MyShopTabProps> = ({
                 <ProductCard
                   key={product.id}
                   product={product}
+                  currentLanguage={currentLanguage}
                   showDelete={true}
                   onDelete={() => setProductToDelete(product)}
+                  onOpenQR={onOpenQR}
                 />
               ))}
             </div>

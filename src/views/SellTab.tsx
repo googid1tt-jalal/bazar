@@ -3,11 +3,14 @@ import { CATEGORIES, ProductItem } from '../types/market';
 import { resizeAndCompressImage } from '../utils/helpers';
 import { Upload, X, Check, Image as ImageIcon, Sparkles } from 'lucide-react';
 
+import { PackagePlus } from 'lucide-react';
+
 interface SellTabProps {
   onPublish: (item: ProductItem) => void;
+  onOpenAmazonImport?: () => void;
 }
 
-export const SellTab: React.FC<SellTabProps> = ({ onPublish }) => {
+export const SellTab: React.FC<SellTabProps> = ({ onPublish, onOpenAmazonImport }) => {
   const [photoUrl, setPhotoUrl] = useState<string>('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState(CATEGORIES[1].id); // default to 'embroidery_clothes'
@@ -71,7 +74,8 @@ export const SellTab: React.FC<SellTabProps> = ({ onPublish }) => {
       description: description.trim(),
       photoUrl: photoUrl.trim(),
       createdAt: new Date().toISOString(),
-      isMine: true
+      isMine: true,
+      source: 'own'
     };
 
     onPublish(newItem);
@@ -79,10 +83,38 @@ export const SellTab: React.FC<SellTabProps> = ({ onPublish }) => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-24">
+      {/* Automated Multi-Platform Import Card Banner */}
+      {onOpenAmazonImport && (
+        <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-400 via-amber-300 to-[#f4c542] text-[#0f5132] shadow-md border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#0f5132] text-[#f4c542] flex items-center justify-center text-2xl shadow-sm shrink-0">
+              <PackagePlus className="w-6 h-6 text-[#f4c542]" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-base sm:text-lg font-nastaliq text-[#0f5132] leading-tight">
+                🌐 ملٹی پلیٹ فارم امپورٹ (Amazon, Alibaba, Daraz, Markaz)
+              </h2>
+              <p className="text-xs text-[#0f5132]/90 font-medium leading-relaxed font-nastaliq">
+                ایمیزون، علی بابا، دراز یا مرکز ایپ کی لنک پیسٹ کریں اور خودکار عنوان، تصویر اور قیمت کے ساتھ مارکیٹ میں لائیں!
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenAmazonImport}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-[#0f5132] hover:bg-[#12623d] active:scale-95 text-white font-black text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer font-nastaliq shrink-0"
+          >
+            <PackagePlus className="w-4 h-4 text-[#f4c542]" />
+            <span>پلیٹ فارمز سے امپورٹ کریں</span>
+          </button>
+        </div>
+      )}
+
       {/* 3-Step Hint Banner as specified */}
       <div className="p-4 rounded-2xl bg-[#0f5132] text-white shadow-sm border border-emerald-900 space-y-1">
         <h2 className="font-bold text-sm sm:text-base font-nastaliq">
-          📢 نیا سامان یا دستکاری شائع کریں
+          📢 نیا مقامی سامان یا دستکاری شائع کریں
         </h2>
         <p className="text-xs sm:text-sm text-[#f4c542] font-semibold leading-relaxed">
           1) تصویر لگائیں 2) نام اور قیمت لکھیں 3) شائع کریں دبائیں
