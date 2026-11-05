@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language, AppUser, ADMIN_USER, PAKISTANI_CITIES } from '../types/market';
 import { t } from '../locales/translations';
-import { X, Phone, Mail, User, Lock, CheckCircle2, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, Phone, Mail, User, Lock, CheckCircle2, ShieldCheck, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+
+export type AuthMode = 'login' | 'register' | 'forgot' | 'verify';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialMode?: AuthMode;
   currentLanguage: Language;
   onLanguageChange: (lang: Language) => void;
   currentUser: AppUser | null;
@@ -16,665 +19,239 @@ interface AuthModalProps {
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
+  initialMode = 'login',
   currentLanguage,
   onLanguageChange,
   currentUser,
   onLoginSuccess,
   onLogout
 }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [loginMethod, setLoginMethod] = useState<'phone' | 'facebook' | 'email'>('phone');
+  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('phone');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  // Phone login state
-  const [phone, setPhone] = useState('03001234567');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('7861');
-
-  // Email login state
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
-  // Registration state
+  // Form states
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [secondName, setSecondName] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
-  const [regPhone, setRegPhone] = useState('');
-  const [regCity, setRegCity] = useState(PAKISTANI_CITIES[0]);
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
+  const [city, setCity] = useState(PAKISTANI_CITIES[0]);
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setError(null);
+      setFeedback(null);
+    }
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
-  // Quick Facebook Login simulation
-  const handleFacebookLogin = () => {
-    const fbUser: AppUser = {
-      id: `fb_user_${Date.now()}`,
-      firstName: currentLanguage === 'ps' ? 'احمد' : currentLanguage === 'en' ? 'Ahmad' : 'احمد',
-      secondName: currentLanguage === 'ps' ? 'شیر' : currentLanguage === 'en' ? 'Sher' : 'شیر',
-      name: currentLanguage === 'ps' ? 'احمد شیر خان' : currentLanguage === 'en' ? 'Ahmad Sher Khan' : 'احمد شیر خان',
-      gender: 'male',
-      city: 'پشاور (Peshawar)',
-      provider: 'facebook',
-      role: 'user',
-      avatar: 'AS'
-    };
-    onLoginSuccess(fbUser);
-    setFeedback(currentLanguage === 'ps' ? 'فیسبوک له لارې ننوتل بریالی شو!' : currentLanguage === 'en' ? 'Logged in with Facebook!' : 'فیس بک سے لاگ ان کامیاب!');
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
     setTimeout(() => {
-      setFeedback(null);
-      onClose();
+      if (loginMethod === 'email') {
+        if (!email.includes('@')) {
+          setError("درست ای میل درج کریں");
+          setLoading(false);
+          return;
+        }
+        if (password.length < 6) {
+          setError("پاس ورڈ کم از کم 6 ہندسوں کا ہونا چاہیے");
+          setLoading(false);
+          return;
+        }
+        
+        // Simulating admin check
+        if (email.toLowerCase().includes('admin')) {
+          onLoginSuccess(ADMIN_USER);
+        } else {
+          onLoginSuccess({
+            id: `user_${Date.now()}`,
+            firstName: email.split('@')[0],
+            secondName: 'صارف',
+            name: email.split('@')[0],
+            gender: 'male',
+            email,
+            city: 'اسلام آباد',
+            provider: 'email',
+            role: 'user',
+            avatar: email.charAt(0).toUpperCase()
+          });
+        }
+      } else {
+        if (phone.length < 10) {
+          setError("درست موبائل نمبر درج کریں");
+          setLoading(false);
+          return;
+        }
+        setMode('verify');
+      }
+      setLoading(false);
     }, 1000);
   };
 
-  // Phone Login Submit
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone) return;
-    setOtpSent(true);
-    setFeedback(
-      currentLanguage === 'ps'
-        ? `ستاسو شمېرې ${phone} ته د تایید کوډ واستول شو (کوډ: 7861)`
-        : currentLanguage === 'en'
-        ? `Verification code sent to ${phone} (Code: 7861)`
-        : `آپ کے نمبر ${phone} پر تصدیقی کوڈ بھیج دیا گیا ہے (کوڈ: 7861)`
-    );
+    setLoading(true);
+    setError(null);
+
+    setTimeout(() => {
+      if (!firstName || !secondName) {
+        setError("براہ کرم تمام معلومات درج کریں");
+        setLoading(false);
+        return;
+      }
+      onLoginSuccess({
+        id: `user_${Date.now()}`,
+        firstName,
+        secondName,
+        name: `${firstName} ${secondName}`,
+        gender: 'male',
+        email: email || undefined,
+        phone: phone || undefined,
+        city,
+        provider: email ? 'email' : 'phone',
+        role: 'user',
+        avatar: firstName.charAt(0).toUpperCase()
+      });
+      setLoading(false);
+    }, 1000);
   };
 
-  const handleVerifyPhone = (e: React.FormEvent) => {
+  const handleForgot = (e: React.FormEvent) => {
     e.preventDefault();
-    const newUser: AppUser = {
+    setLoading(true);
+    setError(null);
+    setTimeout(() => {
+      setFeedback("پاس ورڈ تبدیل کرنے کا لنک آپ کے ای میل پر بھیج دیا گیا ہے");
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleVerify = (e: React.FormEvent) => {
+    e.preventDefault();
+    onLoginSuccess({
       id: `user_${Date.now()}`,
-      firstName: currentLanguage === 'ps' ? 'خان' : currentLanguage === 'en' ? 'Khan' : 'خان',
-      secondName: currentLanguage === 'ps' ? 'زمان' : currentLanguage === 'en' ? 'Zaman' : 'زمان',
-      name: currentLanguage === 'ps' ? 'خان زمان' : currentLanguage === 'en' ? 'Khan Zaman' : 'خان زمان',
+      firstName: 'صارف',
+      secondName: 'خان',
+      name: 'خان صارف',
       gender: 'male',
       phone,
-      city: 'پشاور (Peshawar)',
+      city: 'پشاور',
       provider: 'phone',
       role: 'user',
-      avatar: 'KZ'
-    };
-    onLoginSuccess(newUser);
-    onClose();
+      avatar: 'K'
+    });
   };
-
-  // Email Login Submit
-  const handleEmailLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginEmail) return;
-
-    // Check if logging in as admin Jalal Habib
-    if (loginEmail.toLowerCase().includes('admin') || loginEmail.toLowerCase().includes('jalal') || loginEmail.toLowerCase().includes('habib')) {
-      onLoginSuccess(ADMIN_USER);
-      onClose();
-      return;
-    }
-
-    const newUser: AppUser = {
-      id: `user_${Date.now()}`,
-      firstName: loginEmail.split('@')[0],
-      secondName: 'صارف',
-      name: loginEmail.split('@')[0],
-      gender: 'male',
-      email: loginEmail,
-      city: 'اسلام آباد (Islamabad)',
-      provider: 'email',
-      role: 'user',
-      avatar: loginEmail.charAt(0).toUpperCase()
-    };
-    onLoginSuccess(newUser);
-    onClose();
-  };
-
-  // Register Form Submit
-  const handleRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!firstName.trim() || !secondName.trim()) {
-      alert(currentLanguage === 'en' ? 'Please enter first name and second name' : 'براہ کرم پہلا اور دوسرا نام درج کریں');
-      return;
-    }
-
-    const fullName = `${firstName.trim()} ${secondName.trim()}`;
-    const initials = `${firstName.trim().charAt(0)}${secondName.trim().charAt(0)}`.toUpperCase();
-
-    const newUser: AppUser = {
-      id: `user_${Date.now()}`,
-      firstName: firstName.trim(),
-      secondName: secondName.trim(),
-      name: fullName,
-      gender,
-      phone: regPhone || undefined,
-      email: regEmail || undefined,
-      city: regCity,
-      role: 'user',
-      provider: regPhone ? 'phone' : 'email',
-      avatar: initials
-    };
-
-    onLoginSuccess(newUser);
-    setFeedback(currentLanguage === 'en' ? 'Account created successfully!' : 'نیا اکاؤنٹ کامیابی سے بن گیا!');
-    setTimeout(() => {
-      setFeedback(null);
-      onClose();
-    }, 1000);
-  };
-
-  const isRtl = currentLanguage !== 'en';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
-      <div className="w-full max-w-md bg-white dark:bg-[#1a241e] rounded-3xl shadow-2xl border border-slate-200 dark:border-emerald-950 overflow-hidden my-auto animate-scale-up">
-        
-        {/* Top Header Banner with Green & Gold */}
-        <div className="bg-[#0f5132] text-white p-4 relative">
-          <button
-            onClick={onClose}
-            className="absolute top-3.5 left-3.5 sm:left-4 p-1.5 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 text-emerald-200 hover:text-white transition cursor-pointer"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Prominent Language Switcher */}
-          <div className="flex flex-col items-center justify-center space-y-2 pt-1">
-            <span className="text-[11px] text-emerald-200 font-bold tracking-wide">
-              {currentLanguage === 'ps' ? '🌐 خپله ژبه وټاکئ:' : currentLanguage === 'en' ? '🌐 Select Language:' : '🌐 اپنی زبان منتخب کریں:'}
-            </span>
-            <div className="inline-flex bg-emerald-950/80 p-1 rounded-2xl border border-emerald-800/90 shadow-xs">
-              <button
-                type="button"
-                onClick={() => onLanguageChange('ur')}
-                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
-                  currentLanguage === 'ur'
-                    ? 'bg-[#f4c542] text-[#0f5132] shadow-sm scale-102'
-                    : 'text-emerald-100 hover:text-white hover:bg-emerald-900/50'
-                }`}
-              >
-                اردو (Urdu)
-              </button>
-              <button
-                type="button"
-                onClick={() => onLanguageChange('ps')}
-                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
-                  currentLanguage === 'ps'
-                    ? 'bg-[#f4c542] text-[#0f5132] shadow-sm scale-102'
-                    : 'text-emerald-100 hover:text-white hover:bg-emerald-900/50'
-                }`}
-              >
-                پښتو (Pashto)
-              </button>
-              <button
-                type="button"
-                onClick={() => onLanguageChange('en')}
-                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
-                  currentLanguage === 'en'
-                    ? 'bg-[#f4c542] text-[#0f5132] shadow-sm scale-102'
-                    : 'text-emerald-100 hover:text-white hover:bg-emerald-900/50'
-                }`}
-              >
-                English
-              </button>
-            </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-[#1a241e] w-full max-w-md rounded-3xl shadow-2xl overflow-hidden relative animate-scale-up my-auto">
+        {/* Header Section */}
+        <div className="bg-[#0f5132] p-6 text-white text-center relative">
+          <button onClick={onClose} className="absolute top-4 left-4 p-2 hover:bg-white/10 rounded-full"><X className="w-5 h-5" /></button>
+          <div className="w-16 h-16 bg-[#f4c542] rounded-2xl mx-auto flex items-center justify-center mb-3 shadow-lg">
+            <img src="/icon.svg" alt="Logo" className="w-10 h-10" />
           </div>
-
-          <div className="text-center mt-3">
-            <h2 className="text-xl font-black font-nastaliq text-white">
-              🧶 {t('authModalTitle', currentLanguage)}
-            </h2>
-            <p className="text-xs text-emerald-200/90 mt-0.5">
-              {t('authModalSubtitle', currentLanguage)}
-            </p>
-          </div>
+          <h2 className="text-xl font-black font-nastaliq">
+            {mode === 'login' ? 'لاگ اِن کریں' : 
+             mode === 'register' ? 'نیا اکاؤنٹ بنائیں' : 
+             mode === 'forgot' ? 'پاس ورڈ کی بحالی' : 'تصدیق کریں'}
+          </h2>
         </div>
 
-        {/* User Card if already Logged In */}
-        {currentUser ? (
-          <div className="p-6 space-y-5">
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#0f5132] text-[#f4c542] font-black text-lg flex items-center justify-center shrink-0 shadow-sm">
-                {currentUser.avatar || currentUser.name.charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h4 className="font-extrabold text-slate-900 dark:text-white text-base truncate">
-                    {currentUser.name}
-                  </h4>
-                  {currentUser.role === 'admin' && (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-400 text-[#0f5132] text-[10px] font-black flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3" />
-                      <span>ایڈمن</span>
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {currentUser.phone || currentUser.email || 'موبائل صارف'} • 📍 {currentUser.city || 'پاکستان'}
-                </p>
-                <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold mt-1">
-                  {currentLanguage === 'ps'
-                    ? `جنسیت: ${currentUser.gender === 'male' ? 'سړی' : currentUser.gender === 'female' ? 'ښځه' : 'بل'}`
-                    : currentLanguage === 'en'
-                    ? `Gender: ${currentUser.gender}`
-                    : `صنف: ${currentUser.gender === 'male' ? 'مرد' : currentUser.gender === 'female' ? 'خاتون' : 'دیگر'}`}
-                </div>
-              </div>
-            </div>
+        <div className="p-6 sm:p-8 space-y-6">
+          {error && <div className="p-3 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold text-center border border-rose-100">{error}</div>}
+          {feedback && <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold text-center border border-emerald-100">{feedback}</div>}
 
-            <div className="space-y-2">
-              <button
-                onClick={() => {
-                  onLoginSuccess(ADMIN_USER);
-                  onClose();
-                }}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-900 text-[#f4c542] font-bold text-xs flex items-center justify-center gap-2 hover:bg-black transition cursor-pointer"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>
-                  {currentLanguage === 'ps'
-                    ? 'د جلال حبیب (اډمین) په توګه ننوتل'
-                    : currentLanguage === 'en'
-                    ? 'Switch to Jalal Habib (Admin)'
-                    : 'جلال حبیب (ایڈمن) کے طور پر کام کریں'}
-                </span>
+          {mode === 'login' && (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="flex bg-slate-100 dark:bg-emerald-950/40 p-1 rounded-xl">
+                <button type="button" onClick={() => setLoginMethod('phone')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${loginMethod === 'phone' ? 'bg-white text-[#0f5132] shadow-sm' : 'text-slate-500'}`}>موبائل نمبر</button>
+                <button type="button" onClick={() => setLoginMethod('email')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${loginMethod === 'email' ? 'bg-white text-[#0f5132] shadow-sm' : 'text-slate-500'}`}>ای میل / آئی ڈی</button>
+              </div>
+
+              {loginMethod === 'phone' ? (
+                <div className="relative">
+                  <Phone className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
+                  <input value={phone} onChange={e => setPhone(e.target.value)} type="tel" placeholder="03XXXXXXXXX" className="w-full pr-10 pl-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#0f5132]" />
+                </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Mail className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
+                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="example@mail.com" className="w-full pr-10 pl-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#0f5132]" />
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
+                    <input value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="پاس ورڈ" className="w-full pr-10 pl-10 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#0f5132]" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-3 text-slate-400">{showPassword ? <EyeOff /> : <Eye />}</button>
+                  </div>
+                </>
+              )}
+
+              <button disabled={loading} className="w-full py-4 bg-[#0f5132] text-white rounded-2xl font-bold shadow-lg active:scale-95 transition disabled:opacity-50">
+                {loading ? 'انتظار کریں...' : 'آگے بڑھیں'}
               </button>
 
-              <button
-                onClick={onLogout}
-                className="w-full py-2.5 px-4 rounded-xl border border-rose-300 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-bold text-xs transition cursor-pointer"
-              >
-                {t('logout', currentLanguage)}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-5">
-            {/* Feedback alert */}
-            {feedback && (
-              <div className="mb-4 p-3 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 text-[#0f5132] dark:text-emerald-200 text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{feedback}</span>
+              <div className="text-center space-y-3 pt-2">
+                <button type="button" onClick={() => setMode('forgot')} className="text-xs text-blue-600 hover:underline">پاس ورڈ بھول گئے؟</button>
+                <div className="text-xs text-slate-500">اکاؤنٹ نہیں ہے؟ <button type="button" onClick={() => setMode('register')} className="text-[#0f5132] font-bold">رجسٹر کریں</button></div>
               </div>
-            )}
+            </form>
+          )}
 
-            {/* Mode Toggle: Sign In vs Register */}
-            <div className="grid grid-cols-2 p-1 bg-slate-100 dark:bg-[#121915] rounded-2xl mb-5 border border-slate-200 dark:border-emerald-950">
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
-                  mode === 'login'
-                    ? 'bg-white dark:bg-[#1f2b23] text-[#0f5132] dark:text-[#f4c542] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('tabLogin', currentLanguage)}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('register')}
-                className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
-                  mode === 'register'
-                    ? 'bg-white dark:bg-[#1f2b23] text-[#0f5132] dark:text-[#f4c542] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('tabRegister', currentLanguage)}
-              </button>
-            </div>
-
-            {/* ===================== LOGIN MODE ===================== */}
-            {mode === 'login' ? (
-              <div className="space-y-4">
-                {/* 3 Login Method Selector */}
-                <div className="flex gap-2 border-b border-slate-200 dark:border-emerald-950 pb-3">
-                  <button
-                    type="button"
-                    onClick={() => setLoginMethod('phone')}
-                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                      loginMethod === 'phone'
-                        ? 'bg-[#0f5132] text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-[#121915] text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>{currentLanguage === 'ps' ? 'شمېره' : currentLanguage === 'en' ? 'Phone' : 'موبائل'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setLoginMethod('facebook')}
-                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                      loginMethod === 'facebook'
-                        ? 'bg-[#1877F2] text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-[#121915] text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <span className="font-black text-sm">f</span>
-                    <span>Facebook</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setLoginMethod('email')}
-                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                      loginMethod === 'email'
-                        ? 'bg-[#0f5132] text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-[#121915] text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>{currentLanguage === 'ps' ? 'ایمیل' : currentLanguage === 'en' ? 'Email' : 'ای میل'}</span>
-                  </button>
-                </div>
-
-                {/* Method 1: Phone Login */}
-                {loginMethod === 'phone' && (
-                  <div>
-                    {!otpSent ? (
-                      <form onSubmit={handleSendOtp} className="space-y-3">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            {t('loginViaPhone', currentLanguage)}
-                          </label>
-                          <div className="flex gap-2" dir="ltr">
-                            <span className="px-3 py-2 bg-slate-100 dark:bg-[#121915] text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs border border-slate-200 dark:border-emerald-950 flex items-center">
-                              🇵🇰 +92
-                            </span>
-                            <input
-                              type="tel"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              placeholder="0300 1234567"
-                              className="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                              required
-                            />
-                          </div>
-                          <span className="text-[10px] text-slate-400 mt-1 block">
-                            {currentLanguage === 'ps'
-                              ? 'ستاسو شمېرې ته به یو وختي رمز (OTP) واستول شي'
-                              : currentLanguage === 'en'
-                              ? 'A 4-digit verification code will be sent to your phone'
-                              : 'آپ کے موبائل پر 4 ہندسوں کا تصدیقی کوڈ بھیجا جائے گا'}
-                          </span>
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 px-4 rounded-xl bg-[#f4c542] hover:bg-[#e5b634] text-[#0f5132] font-black text-xs sm:text-sm transition shadow-xs cursor-pointer"
-                        >
-                          {t('sendOtp', currentLanguage)}
-                        </button>
-                      </form>
-                    ) : (
-                      <form onSubmit={handleVerifyPhone} className="space-y-3">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            {currentLanguage === 'ps' ? 'د تایید کوډ (OTP) ولیکئ:' : currentLanguage === 'en' ? 'Enter 4-digit code:' : 'تصدیقی کوڈ درج کریں:'}
-                          </label>
-                          <input
-                            type="text"
-                            maxLength={4}
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value)}
-                            className="w-full text-center tracking-[0.5em] text-lg font-mono font-bold px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                            required
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 px-4 rounded-xl bg-[#0f5132] hover:bg-emerald-900 text-white font-black text-xs sm:text-sm transition shadow-xs cursor-pointer"
-                        >
-                          {t('verifyAndLogin', currentLanguage)}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setOtpSent(false)}
-                          className="w-full text-center text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                        >
-                          {currentLanguage === 'ps' ? 'شمېره بدله کړئ' : currentLanguage === 'en' ? 'Change Phone Number' : 'دوسرا نمبر لکھیں'}
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                )}
-
-                {/* Method 2: Facebook Login */}
-                {loginMethod === 'facebook' && (
-                  <div className="space-y-4 py-2">
-                    <p className="text-xs text-slate-600 dark:text-slate-300 text-center">
-                      {currentLanguage === 'ps'
-                        ? 'پر یو کلیک سره د خپل فیسبوک حساب له لارې هنر بازار سره وصل شئ.'
-                        : currentLanguage === 'en'
-                        ? 'Quickly connect with your Facebook account in one click.'
-                        : 'صرف ایک کلک کے ساتھ اپنے فیس بک اکاؤنٹ کے ذریعے ہنر بازار میں لاگ ان ہوں۔'}
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={handleFacebookLogin}
-                      className="w-full py-3 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2.5 shadow-sm cursor-pointer"
-                    >
-                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                      </svg>
-                      <span>{t('facebookBtn', currentLanguage)}</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Method 3: Email Login */}
-                {loginMethod === 'email' && (
-                  <form onSubmit={handleEmailLogin} className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        {t('emailInputLabel', currentLanguage)}
-                      </label>
-                      <input
-                        type="email"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        {t('passwordInputLabel', currentLanguage)}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={loginPassword}
-                          onChange={(e) => setLoginPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
-                        >
-                          {showPassword ? '🙈' : '👁️'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full py-2.5 px-4 rounded-xl bg-[#0f5132] hover:bg-emerald-900 text-white font-black text-xs sm:text-sm transition shadow-xs cursor-pointer"
-                    >
-                      {t('login', currentLanguage)}
-                    </button>
-                  </form>
-                )}
-
-                {/* Quick Admin Jalal Habib switch shortcut */}
-                <div className="pt-3 border-t border-slate-100 dark:border-emerald-950/60">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onLoginSuccess(ADMIN_USER);
-                      onClose();
-                    }}
-                    className="w-full py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-900/60 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-amber-100 transition cursor-pointer"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-amber-600" />
-                    <span>
-                      {currentLanguage === 'ps'
-                        ? 'د جلال حبیب (اډمین) په توګه سمدستي ننوتل'
-                        : currentLanguage === 'en'
-                        ? 'Quick Login as Jalal Habib (Admin)'
-                        : 'بطور جلال حبیب (ایڈمن) فوری لاگ ان'}
-                    </span>
-                  </button>
-                </div>
+          {mode === 'register' && (
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="پہلا نام" className="w-full p-3 bg-slate-50 rounded-xl" />
+                <input value={secondName} onChange={e => setSecondName(e.target.value)} placeholder="دوسرا نام" className="w-full p-3 bg-slate-50 rounded-xl" />
               </div>
-            ) : (
-              /* ===================== REGISTRATION MODE ===================== */
-              <form onSubmit={handleRegisterSubmit} className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
-                {/* 1. First Name & Second Name */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      {t('firstNameLabel', currentLanguage)} <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder={currentLanguage === 'ps' ? 'مثال: احمد' : currentLanguage === 'en' ? 'e.g. Ahmad' : 'مثلاً: احمد'}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                      required
-                    />
-                  </div>
+              <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="ای میل (اختیاری)" className="w-full p-3 bg-slate-50 rounded-xl" />
+              <input value={phone} onChange={e => setPhone(e.target.value)} type="tel" placeholder="موبائل نمبر" className="w-full p-3 bg-slate-50 rounded-xl" />
+              <select value={city} onChange={e => setCity(e.target.value)} className="w-full p-3 bg-slate-50 rounded-xl">
+                {PAKISTANI_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <button disabled={loading} className="w-full py-4 bg-[#0f5132] text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">
+                {loading ? 'انتظار کریں...' : 'رجسٹر کریں'}
+              </button>
+              <div className="text-center text-xs text-slate-500">پہلے سے اکاؤنٹ ہے؟ <button type="button" onClick={() => setMode('login')} className="text-[#0f5132] font-bold">لاگ اِن</button></div>
+            </form>
+          )}
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      {t('secondNameLabel', currentLanguage)} <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={secondName}
-                      onChange={(e) => setSecondName(e.target.value)}
-                      placeholder={currentLanguage === 'ps' ? 'مثال: خان / افریدی' : currentLanguage === 'en' ? 'e.g. Khan / Afridi' : 'مثلاً: خان / زمان'}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                      required
-                    />
-                  </div>
-                </div>
+          {mode === 'forgot' && (
+            <form onSubmit={handleForgot} className="space-y-4">
+              <p className="text-xs text-slate-500 text-center">اپنا ای میل درج کریں تاکہ ہم آپ کو پاس ورڈ کی بحالی کا لنک بھیج سکیں۔</p>
+              <div className="relative">
+                <Mail className="absolute right-3 top-3 w-5 h-5 text-slate-400" />
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="example@mail.com" className="w-full pr-10 pl-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-[#0f5132]" />
+              </div>
+              <button disabled={loading} className="w-full py-4 bg-[#0f5132] text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">
+                {loading ? 'انتظار کریں...' : 'لنک بھیجیں'}
+              </button>
+              <button type="button" onClick={() => setMode('login')} className="w-full text-xs text-slate-500 font-bold">واپس جائیں</button>
+            </form>
+          )}
 
-                {/* 2. Gender Selection (مرد، خاتون، دیگر) */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    {t('genderLabel', currentLanguage)} <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setGender('male')}
-                      className={`py-2 px-2 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1 transition cursor-pointer ${
-                        gender === 'male'
-                          ? 'bg-[#0f5132] text-white border-[#0f5132] shadow-xs'
-                          : 'bg-slate-50 dark:bg-[#121915] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-emerald-950'
-                      }`}
-                    >
-                      <span>👨</span>
-                      <span>{t('genderMale', currentLanguage)}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setGender('female')}
-                      className={`py-2 px-2 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1 transition cursor-pointer ${
-                        gender === 'female'
-                          ? 'bg-[#0f5132] text-white border-[#0f5132] shadow-xs'
-                          : 'bg-slate-50 dark:bg-[#121915] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-emerald-950'
-                      }`}
-                    >
-                      <span>👩</span>
-                      <span>{t('genderFemale', currentLanguage)}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setGender('other')}
-                      className={`py-2 px-2 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1 transition cursor-pointer ${
-                        gender === 'other'
-                          ? 'bg-[#0f5132] text-white border-[#0f5132] shadow-xs'
-                          : 'bg-slate-50 dark:bg-[#121915] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-emerald-950'
-                      }`}
-                    >
-                      <span>🧑</span>
-                      <span>{t('genderOther', currentLanguage)}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 3. Mobile Number */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {t('loginViaPhone', currentLanguage)}
-                  </label>
-                  <input
-                    type="tel"
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="0300 1234567"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                  />
-                </div>
-
-                {/* 4. City Dropdown */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {t('cityLabel', currentLanguage)}
-                  </label>
-                  <select
-                    value={regCity}
-                    onChange={(e) => setRegCity(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542] cursor-pointer"
-                  >
-                    {PAKISTANI_CITIES.map((c) => (
-                      <option key={c} value={c} className="bg-white dark:bg-[#1a241e] text-slate-900 dark:text-white">
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 5. Password */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {t('passwordInputLabel', currentLanguage)} <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#121915] border border-slate-200 dark:border-emerald-950 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#f4c542]"
-                    required
-                  />
-                </div>
-
-                {/* Submit Register */}
-                <button
-                  type="submit"
-                  className="w-full py-3 px-4 rounded-xl bg-[#0f5132] hover:bg-emerald-900 text-white font-black text-xs sm:text-sm transition shadow-sm cursor-pointer mt-2"
-                >
-                  {t('createAccountBtn', currentLanguage)}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
+          {mode === 'verify' && (
+            <form onSubmit={handleVerify} className="space-y-4">
+              <p className="text-xs text-slate-500 text-center">آپ کے نمبر {phone} پر بھیجا گیا 4 ہندسوں کا کوڈ درج کریں (7861)</p>
+              <div className="flex justify-center gap-2">
+                {[1,2,3,4].map(i => <input key={i} maxLength={1} className="w-12 h-14 bg-slate-100 rounded-xl text-center text-xl font-bold border-none focus:ring-2 focus:ring-[#0f5132]" />)}
+              </div>
+              <button className="w-full py-4 bg-[#0f5132] text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">تصدیق کریں</button>
+              <button type="button" onClick={() => setMode('login')} className="w-full text-xs text-slate-500 font-bold">نمبر تبدیل کریں</button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

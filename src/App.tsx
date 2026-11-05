@@ -14,7 +14,8 @@ import {
   Language,
   OrderShippingStatus,
   BidItem,
-  AppUser
+  AppUser,
+  ADMIN_USER
 } from './types/market';
 import {
   INITIAL_PRODUCTS,
@@ -24,22 +25,27 @@ import {
   INITIAL_BIDS
 } from './utils/helpers';
 import { Header } from './components/Header';
-import { SideNavigation } from './components/SideNavigation';
-import { AuthModal } from './components/AuthModal';
 import { BottomNav, TabKey } from './components/BottomNav';
 import { OrderModal } from './components/OrderModal';
 import { BidModal } from './components/BidModal';
+import { AuthModal } from './components/AuthModal';
+import { QRCodeModal } from './components/QRCodeModal';
 import { ShippingLabelModal } from './components/ShippingLabelModal';
 import { TrackingTimelineModal } from './components/TrackingTimelineModal';
 import { SellerShipmentModal } from './components/SellerShipmentModal';
 import { AdminShippingModal } from './components/AdminShippingModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { MultiPlatformImportModal } from './components/MultiPlatformImportModal';
+import { LanguageModal } from './components/LanguageModal';
+import { Sidebar } from './components/Sidebar';
+import { AuthMode } from './components/AuthModal';
 
 import { MarketTab } from './views/MarketTab';
 import { SellTab } from './views/SellTab';
 import { MyShopTab } from './views/MyShopTab';
 import { MyOrdersTab } from './views/MyOrdersTab';
+import { ProfileTab } from './views/ProfileTab';
 
 const STORAGE_KEYS = {
   ITEMS: 'items',
@@ -49,35 +55,10 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'notifications',
   BIDS: 'bids',
   THEME: 'theme',
-  LANG: 'lang',
-  USER: 'user'
+  LANG: 'lang'
 };
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.USER);
-      return saved ? JSON.parse(saved) as AppUser : null;
-    } catch (e) {
-      console.warn('Failed to parse user from storage:', e);
-      return null;
-    }
-  });
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isSideNavigationOpen, setIsSideNavigationOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (currentUser) {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
-      } else {
-        localStorage.removeItem(STORAGE_KEYS.USER);
-      }
-    } catch (e) {
-      console.warn('Failed to save user to storage:', e);
-    }
-  }, [currentUser]);
-
   // 1. Language State
   const [language, setLanguage] = useState<Language>(() => {
     return (localStorage.getItem(STORAGE_KEYS.LANG) as Language) || 'ur';
@@ -86,12 +67,14 @@ export default function App() {
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem(STORAGE_KEYS.LANG, lang);
-    document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+    const isRtl = ['ur', 'ps', 'ar', 'fa', 'sd', 'bal', 'pa', 'skr', 'ks'].includes(lang);
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
   };
 
   useEffect(() => {
-    document.documentElement.dir = language === 'en' ? 'ltr' : 'rtl';
+    const isRtl = ['ur', 'ps', 'ar', 'fa', 'sd', 'bal', 'pa', 'skr', 'ks'].includes(language);
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);
 
@@ -117,7 +100,41 @@ export default function App() {
   };
 
   // 3. Navigation State
-  const [currentTab, setCurrentTab] = useState<TabKey>('market');
+  const [currentTab, setCurrentTab] = useState<TabKey>('home');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSellOpen, setIsSellOpen] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        setIsKeyboardVisible(window.visualViewport.height < window.innerHeight * 0.85);
+      }
+    };
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+  }, []);
+
+  const openAuth = (mode: AuthMode = 'login') => {
+    setAuthMode(mode);
+    setIsAuthOpen(true);
+  };
+
+  const handleTabChange = (tab: TabKey) => {
+    if ((tab === 'sell' || tab === 'orders') && !currentUser) {
+      openAuth('login');
+      return;
+    }
+    setCurrentTab(tab);
+  };
+
+
+  // ... (existing state)
+
+
 
   // 4. Search and Category Filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -249,14 +266,39 @@ export default function App() {
     }
   }, [bids]);
 
-  // 11. Modals State
+  // 11. User & Auth State
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse user from storage:', e);
+    }
+    return ADMIN_USER; // Default user as Jalal Habib Admin
+  });
+
+  const handleLoginSuccess = (user: AppUser) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('user', JSON.stringify(user));
+    } catch (e) {}
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // 12. Modals State
   const [orderModalProduct, setOrderModalProduct] = useState<ProductItem | null>(null);
   const [bidModalProduct, setBidModalProduct] = useState<ProductItem | null>(null);
+  const [qrModalProduct, setQrModalProduct] = useState<ProductItem | null>(null);
   const [shippingLabelOrder, setShippingLabelOrder] = useState<OrderItem | null>(null);
   const [trackingModalOrder, setTrackingModalOrder] = useState<OrderItem | null>(null);
   const [sellerShipmentOrder, setSellerShipmentOrder] = useState<OrderItem | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isAmazonImportOpen, setIsAmazonImportOpen] = useState(false);
 
   // Handlers
   const handlePlaceBid = (newBid: BidItem) => {
@@ -342,7 +384,7 @@ export default function App() {
   // Handlers
   const handlePublishProduct = (newItem: ProductItem) => {
     setProducts((prev) => [newItem, ...prev]);
-    setCurrentTab('myshop');
+    setCurrentTab('home');
   };
 
   const handleDeleteProduct = (productId: string) => {
@@ -467,83 +509,91 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f4ee] dark:bg-[#121915] text-[#1c2420] dark:text-[#eef3f0] transition-colors duration-200">
-      {/* Sticky Header with Title, Cultural Subtitle, Dark Mode, Notifications, Admin & Live Search */}
+      {/* Sticky Header with Sidebar Toggle */}
       <Header
-        currentTab={currentTab}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={toggleDarkMode}
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
         currentLanguage={language}
-        onLanguageChange={handleLanguageChange}
+        onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
         currentUser={currentUser}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        isSideNavigationOpen={isSideNavigationOpen}
-        onOpenSideNavigation={() => setIsSideNavigationOpen(true)}
+        onToggleSidebar={() => setIsSidebarOpen(true)}
       />
 
-      <SideNavigation
-        isOpen={isSideNavigationOpen}
-        currentLanguage={language}
-        currentUserName={currentUser?.name}
-        selectedCategory={selectedCategory}
-        onClose={() => setIsSideNavigationOpen(false)}
-        onSelectCategory={setSelectedCategory}
-        onSelectTab={setCurrentTab}
-        onOpenAccount={() => setIsAuthOpen(true)}
-        onSignOut={() => setCurrentUser(null)}
-        onLanguageChange={handleLanguageChange}
-      />
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        currentLanguage={language}
-        onLanguageChange={handleLanguageChange}
+      {/* Side Menu Drawer */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)}
         currentUser={currentUser}
-        onLoginSuccess={setCurrentUser}
-        onLogout={() => {
-          setCurrentUser(null);
-          setIsAuthOpen(false);
+        currentLanguage={language}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
+        onOpenLanguage={() => setIsLanguageModalOpen(true)}
+        onOpenAuth={(mode) => openAuth(mode as AuthMode)}
+        onLogout={handleLogout}
+        onNavigate={(tab) => {
+          handleTabChange(tab as TabKey);
+          setIsSidebarOpen(false);
         }}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
-        {currentTab === 'market' && (
+
+
+
+      {/* Main Content Area with Dynamic Padding */}
+      <main className={`flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pt-4 sm:pt-6 ${!isKeyboardVisible ? 'pb-24' : 'pb-6'}`}>
+        {currentTab === 'home' && (
           <MarketTab
             products={products}
             searchQuery={searchQuery}
             selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            onResetSearch={() => setSearchQuery('')}
+            currentLanguage={language}
             onOrder={handleOrderClick}
             onBid={(product) => setBidModalProduct(product)}
-            onGoToSell={() => setCurrentTab('sell')}
+            onOpenQR={(product) => setQrModalProduct(product)}
+            onGoToSell={() => handleTabChange('sell')}
           />
+        )}
+
+        {currentTab === 'search' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#1a241e] p-5 rounded-3xl border border-slate-100 dark:border-emerald-950 shadow-xs">
+              <h2 className="text-xl font-black font-nastaliq text-[#0f5132] dark:text-[#f4c542] mb-1">تلاش اور کیٹیگریز</h2>
+              <p className="text-xs text-slate-500 font-medium">اپنی پسند کا سامان یا ہنر یہاں تلاش کریں</p>
+            </div>
+            <MarketTab
+              products={products}
+              searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              onResetSearch={() => setSearchQuery('')}
+              currentLanguage={language}
+              onOrder={handleOrderClick}
+              onBid={(product) => setBidModalProduct(product)}
+              onOpenQR={(product) => setQrModalProduct(product)}
+              onGoToSell={() => handleTabChange('sell')}
+            />
+          </div>
         )}
 
         {currentTab === 'sell' && (
-          <SellTab onPublish={handlePublishProduct} />
-        )}
+          <div className="max-w-2xl mx-auto animate-fade-in">
+            <div className="bg-white dark:bg-[#1a241e] p-6 rounded-3xl border border-slate-100 dark:border-emerald-950 shadow-xs mb-6">
+              <h2 className="text-xl font-black font-nastaliq text-[#0f5132] dark:text-white">🏪 اپنا سامان یا دستکاری فروخت کریں</h2>
+              <p className="text-xs text-slate-500 mt-1">آپ کا اشتہار براہ راست بازار میں شائع کر دیا جائے گا</p>
+            </div>
+            <SellTab
+              onPublish={(newItem) => {
+                handlePublishProduct(newItem);
+                handleTabChange('home');
+              }}
+              onOpenAmazonImport={() => setIsAmazonImportOpen(true)}
+            />
 
-        {currentTab === 'myshop' && (
-          <MyShopTab
-            products={products}
-            orders={orders}
-            couriers={couriers}
-            bids={bids}
-            onDeleteProduct={handleDeleteProduct}
-            onGoToSell={() => setCurrentTab('sell')}
-            onOpenShipmentModal={(order) => setSellerShipmentOrder(order)}
-            onOpenShippingLabel={(order) => setShippingLabelOrder(order)}
-            onAcceptBid={handleAcceptBid}
-            onDeclineBid={handleDeclineBid}
-            onBid={(product) => setBidModalProduct(product)}
-          />
+          </div>
         )}
 
         {currentTab === 'orders' && (
@@ -557,19 +607,29 @@ export default function App() {
                 status: status === 'delivered' ? 'مال مل گیا ✅' : 'منسوخ ❌'
               })
             }
-            onGoToMarket={() => setCurrentTab('market')}
+            onGoToMarket={() => handleTabChange('home')}
             onOpenTrackingModal={(order) => setTrackingModalOrder(order)}
+          />
+        )}
+
+        {currentTab === 'profile' && (
+          <ProfileTab 
+            currentUser={currentUser}
+            currentLanguage={language}
+            onLogout={handleLogout}
+            onOpenAuth={() => openAuth('login')}
           />
         )}
       </main>
 
-      {/* Fixed Bottom Navigation (4 Tabs) */}
+      {/* Modern Bottom Navigation Bar */}
       <BottomNav
         currentTab={currentTab}
-        onTabChange={setCurrentTab}
-        myItemsCount={myItemsCount}
-        ordersCount={activeOrdersCount}
+        onTabChange={handleTabChange}
+        ordersCount={unreadNotificationsCount}
+        isHidden={isKeyboardVisible || isAuthOpen}
       />
+
 
       {/* Bid / Make an Offer Modal */}
       <BidModal
@@ -636,6 +696,43 @@ export default function App() {
         notifications={notifications}
         onMarkAllAsRead={handleMarkAllNotificationsRead}
         onSelectOrder={handleSelectNotificationOrder}
+      />
+
+      {/* User Login & Registration Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialMode={authMode}
+        currentLanguage={language}
+        onLanguageChange={handleLanguageChange}
+        currentUser={currentUser}
+        onLoginSuccess={handleLoginSuccess}
+        onLogout={handleLogout}
+      />
+
+
+      {/* Product QR Code Generator & WhatsApp Poster Modal */}
+      <QRCodeModal
+        product={qrModalProduct}
+        isOpen={Boolean(qrModalProduct)}
+        onClose={() => setQrModalProduct(null)}
+        currentLanguage={language}
+      />
+
+      {/* Automated Multi-Platform Product Import Modal (Amazon, Alibaba, Daraz, Markaz) */}
+      <MultiPlatformImportModal
+        isOpen={isAmazonImportOpen}
+        onClose={() => setIsAmazonImportOpen(false)}
+        onImportSuccess={handlePublishProduct}
+        currentLanguage={language}
+      />
+
+      {/* Language Selection Modal */}
+      <LanguageModal
+        isOpen={isLanguageModalOpen}
+        onClose={() => setIsLanguageModalOpen(false)}
+        currentLanguage={language}
+        onSelectLanguage={handleLanguageChange}
       />
 
       {/* Offline Status Alert for PWA */}
